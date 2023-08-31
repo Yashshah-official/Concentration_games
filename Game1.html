@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenging Memory Game with Timing</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+  }
+
+  .game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .game-board {
+    display: grid;
+    grid-template-columns: repeat(6, 80px);
+    gap: 10px;
+  }
+
+  .card {
+    width: 80px;
+    height: 100px;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    user-select: none;
+  }
+
+  .card.clicked {
+    background-color: #ccc;
+  }
+
+  .card .symbol {
+    display: none;
+  }
+
+  .card.clicked .symbol {
+    display: block;
+  }
+
+  .matched {
+    background-color: #88cc88 !important;
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <button id="startBtn">Start Game</button>
+  <div class="game-board"></div>
+  <div id="timer">Time: 0</div>
+</div>
+<script>
+  const symbols = ['🌟', '🌺', '🍎', '🍕', '🚀', '🐳', '🎈', '🌈', '🍔', '🎁', '🐶', '🌼'];
+  const cards = symbols.concat(symbols);
+  let flippedCards = [];
+  let matchedPairs = 0;
+  let isGameStarted = false;
+  let seconds = 0;
+  let timerInterval;
+
+  const gameContainer = document.querySelector('.game-container');
+  const gameBoard = document.querySelector('.game-board');
+  const startBtn = document.getElementById('startBtn');
+  const timerDisplay = document.getElementById('timer');
+
+  function createCard(symbol) {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.innerHTML = `<span class="symbol">${symbol}</span>`;
+    card.addEventListener('click', () => flipCard(card, symbol));
+    gameBoard.appendChild(card);
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function flipCard(card, symbol) {
+    if (!isGameStarted) {
+      startGame();
+    }
+
+    if (flippedCards.length < 2 && !flippedCards.includes(card) && !card.classList.contains('matched')) {
+      card.classList.add('clicked');
+      flippedCards.push(card);
+    }
+
+    if (flippedCards.length === 2) {
+      const [card1, card2] = flippedCards;
+      if (card1.textContent === card2.textContent) {
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        flippedCards = [];
+        matchedPairs++;
+        if (matchedPairs === symbols.length) {
+          clearInterval(timerInterval);
+          alert(`Congratulations! You've completed the game in ${seconds} seconds.`);
+        }
+      } else {
+        setTimeout(() => {
+          card1.classList.remove('clicked');
+          card2.classList.remove('clicked');
+          flippedCards = [];
+        }, 1000);
+      }
+    }
+  }
+
+  function startGame() {
+    isGameStarted = true;
+    startBtn.disabled = true;
+    shuffle(cards);
+    cards.forEach(symbol => createCard(symbol));
+    startTimer();
+  }
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      seconds++;
+      timerDisplay.textContent = `Time: ${seconds}`;
+    }, 1000);
+  }
+
+  startBtn.addEventListener('click', startGame);
+</script>
+</body>
+</html>
